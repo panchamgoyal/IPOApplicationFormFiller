@@ -1,5 +1,10 @@
-insert into PDF_INFO (address, email, filled) values ('11th Floor', 'rmcpartling0@1688.com', false);
-insert into PDF_INFO (address, email, filled) values ('Apt 296', 'imilington1@stanford.edu', true);
-insert into PDF_INFO (address, email, filled) values ('Room 1848', 'lepperson2@joomla.org', true);
-insert into PDF_INFO (address, email, filled) values ('PO Box 21304', 'dgherarducci3@wikispaces.com', true);
-insert into PDF_INFO (address, email, filled) values ('Suite 21', 'coshiel4@guardian.co.uk', false);
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Davey Battin', 'dbattin0@slashdot.org', '2373 Anniversary Crossing', '983-926-8790', true, '=.*Z)=.*7)z+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Shantee Clemmett', 'sclemmett1@devhub.com', '3 Anthes Drive', '901-736-2054', false, '=.*Z=.*0)d+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Saraann Sussems', 'ssussems2@vinaora.com', '5 Victoria Junction', '267-377-7487', true, '=.*G=.*6)v+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Teddie Paddon', 'tpaddon3@bluehost.com', '6868 Graceland Crossing', '152-423-0142', true, '=.*y=.*8\+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Sharl Waber', 'swaber4@microsoft.com', '8766 Anniversary Avenue', '726-298-9763', false, '=.*s)=.*2)d+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Borg Charrett', 'bcharrett5@pbs.org', '947 Manitowish Plaza', '420-408-3135', false, '=.*m)=.*7)E+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Audre McCard', 'amccard6@1und1.de', '649 Northland Place', '454-559-3176', false, '=.*n)=.*7)b+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Christen Siggs', 'csiggs7@hibu.com', '911 Mallory Terrace', '171-271-7817', false, '=.*v)=.*1)\+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Martica Burkert', 'mburkert8@tiny.cc', '94 Bowman Plaza', '578-442-2485', true, '=.*f=.*0g+');
+insert into PDF_INFO (name, email, address, tel_number, filled, pan_of_sole) values ('Magdalene Boram', 'mboram9@theglobeandmail.com', '4 Maple Wood Way', '814-843-4413', true, '=.*u)=.*3N+');

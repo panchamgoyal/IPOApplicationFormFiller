@@ -9,16 +9,15 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 @RestController
@@ -30,15 +29,22 @@ public class PdfController {
     @Autowired
     private PdfInfoRepository pdfInfoRepository;
 
-    @GetMapping("/fill-template-and-compress")
-    public ResponseEntity<byte[]> fillPdfTemplateAndCompress() throws IOException {
-        String templatePath = "D:\\PdfEditor\\PdfFiller\\src\\main\\resources\\templates\\TATATECH_800121598.pdf"; // Replace with the actual path
+    @PostMapping("/fill-template-and-compress")
+    public ResponseEntity<byte[]> fillPdfTemplateAndCompress(@RequestPart("templateFile") MultipartFile templateFile) throws IOException {
+        // Save the uploaded template file to the "resources/templates" directory
+        File templateDirectory = new ClassPathResource("templates").getFile();
+        File uploadedFile = new File(templateDirectory, "uploaded_template.pdf");
+        try (OutputStream outputStream = new FileOutputStream(uploadedFile)) {
+            FileCopyUtils.copy(templateFile.getInputStream(), outputStream);
+        }
+
+        String templatePath = uploadedFile.getAbsolutePath();
         String outputFileName = "output_filled.zip";
 
         List<PdfInfo> pdfInfos = pdfInfoRepository.findAllByFilledIsFalse();
         List<byte[]> pdfBytesForMore = pdfInfos.stream().map(pdfInfo -> {
             try {
-                return pdfGenerationService.fillAndFlattenPdfTemplate(templatePath, outputFileName, pdfInfo.getAddress(), pdfInfo.getEmail());
+                return pdfGenerationService.fillAndFlattenPdfTemplate(templatePath, outputFileName, pdfInfo);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

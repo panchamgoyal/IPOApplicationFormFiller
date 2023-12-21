@@ -1,13 +1,16 @@
 package com.example.pdffiller.service;
 
+import com.example.pdffiller.entity.PdfInfo;
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.forms.fields.PdfFormField;
+import com.itextpdf.io.font.FontConstants;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.*;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.colorspace.PdfColorSpace;
 import com.itextpdf.layout.Document;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -23,43 +27,64 @@ import java.util.Map;
 @Service
 public class PdfGenerationService {
 
-    /**
-     * Fills a PDF template with the provided data and returns the filled PDF as a byte array.
-     *
-     * @param templatePath   Path to the PDF template.
-     * @param outputFileName Output file name.
-     * @param name           Name to be filled in the address field.
-     * @param email          Email to be filled in the email field.
-     * @return Filled PDF as a byte array.
-     * @throws IOException If an I/O error occurs.
-     */
-    public byte[] fillAndFlattenPdfTemplate(String templatePath, String outputFileName, String name, String email) throws IOException {
+    public byte[] fillAndFlattenPdfTemplate(String templatePath, String outputFileName, PdfInfo pdfInfo) throws IOException {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              PdfReader reader = new PdfReader(templatePath);
              PdfWriter writer = new PdfWriter(outputStream);
              PdfDocument pdf = new PdfDocument(reader, writer)) {
+
+            // ... your existing code to fill form fields
+
+            // Overlay additional text
             PdfPage page = pdf.getPage(1);
-            PdfAcroForm form = PdfAcroForm.getAcroForm(pdf, true);
+            PdfCanvas canvas = new PdfCanvas(page);
 
+            // Set font properties
+            PdfFont font = PdfFontFactory.createFont(FontConstants.COURIER);
+            float fontSize = 7;
+            Color textColor = new DeviceRgb(0, 0, 0);
 
-            Rectangle fieldAddressRectangle = new Rectangle(340, 705, 243, 9);
-            PdfFormField textFieldAddress = PdfFormField.createText(pdf, fieldAddressRectangle, "address");
-            // Add the text field to the form
-            textFieldAddress.setFontSize(7);
-            textFieldAddress.setValue(name);
-            textFieldAddress.setReadOnly(true);
-            form.addField(textFieldAddress, page);
-            Rectangle fieldEmailRectangle = new Rectangle(448, 694, 135, 9);
-            PdfFormField textFieldEmail = PdfFormField.createText(pdf, fieldEmailRectangle, "email");
-            // Add the text field to the form
-            textFieldEmail.setFontSize(7);
-            textFieldEmail.setValue(email);
-            textFieldEmail.setReadOnly(true);
-            form.addField(textFieldEmail, page);
+            // Add text to the PDF
+            canvas.beginText().setFontAndSize(font, fontSize).setColor(textColor, true)
+                    .moveText(340, 705).showText(pdfInfo.getAddress())
+                    .endText();
+            canvas.beginText().setFontAndSize(font, fontSize).setColor(textColor, true)
+                    .moveText(448, 694).showText(pdfInfo.getEmail())
+                    .endText();
+            if(pdfInfo.getName().length() <= 15) {
+                String name = pdfInfo.getName();
+                name = name.toUpperCase();
+                canvas.beginText().setFontAndSize(font, 11).setColor(textColor, true)
+                        .setCharacterSpacing(10)
+                        .moveText(345, 731).showText(name)
+                        .endText();
+            }
+            else {
+                String name = pdfInfo.getName();
+                String name1 = getFirst15Characters(name);
+                String name2 = getRestOfCharacters(name);
+                name1 = name1.toUpperCase();
+                name2 = name2.toUpperCase();
+                canvas.beginText().setFontAndSize(font, 11).setColor(textColor, true)
+                        .setCharacterSpacing(10)
+                        .moveText(345, 731).showText(name1)
+                        .endText();
+                canvas.beginText().setFontAndSize(font, 11).setColor(textColor, true)
+                        .setCharacterSpacing(10)
+                        .moveText(309, 717).showText(name2)
+                        .endText();
+            }
 
-            // Flatten form fields
-            form.flattenFields();
+            String panOfSole = pdfInfo.getPanOfSole().toUpperCase();
+            canvas.beginText().setFontAndSize(font, 14).setColor(textColor, true)
+                    .setCharacterSpacing(20)
+                    .moveText(310, 648).showText(panOfSole)
+                    .endText();
 
+            canvas.beginText().setFontAndSize(font, 11).setColor(textColor, true)
+                    .setCharacterSpacing(10)
+                    .moveText(423, 683).showText(pdfInfo.getTelNumber())
+                    .endText();
             // Close the documents
             pdf.close();
 
@@ -70,6 +95,13 @@ public class PdfGenerationService {
         }
     }
 
+    private static String getFirst15Characters(String input) {
+        return input.substring(0, Math.min(input.length(), 15));
+    }
+
+    private static String getRestOfCharacters(String input) {
+        return input.substring(Math.min(input.length(), 15));
+    }
 
 
 }
