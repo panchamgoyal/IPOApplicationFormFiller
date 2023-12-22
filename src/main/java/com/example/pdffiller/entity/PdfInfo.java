@@ -25,6 +25,20 @@ public class PdfInfo {
     private String panOfSole;
     @Column(name = "tel_number")
     private String telNumber;
+    @Column(name = "bidder_depository_account_details")
+    private String bidderDepositoryAccountDetails;
+    @Column(name = "bank_account_number")
+    private String bankAccountNumber;
+    @Column(name = "bank_name_and_branch")
+    private String bankNameAndBranch;
+    @Column(name = "ammount_blocked")
+    private String ammountBlocked;
+    @Column(name = "ammount_in_words")
+    private String ammountInWords;
+    @Column(name = "upi_id")
+    private String upiId;
+    @Column(name = "nsdl")
+    private Boolean nsdl;
     @Column(name = "filled")
     private Boolean filled;
 
