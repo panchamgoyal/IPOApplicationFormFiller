@@ -18,7 +18,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("/pdf")
@@ -29,53 +40,51 @@ public class PdfController {
     @Autowired
     private PdfInfoRepository pdfInfoRepository;
 
-    @PostMapping("/fill-template-and-compress")
-    public ResponseEntity<byte[]> fillPdfTemplateAndCompress(@RequestPart("templateFile") MultipartFile templateFile) throws IOException {
-        // Save the uploaded template file to the "resources/templates" directory
-        File templateDirectory = new ClassPathResource("templates").getFile();
-        File uploadedFile = new File(templateDirectory, "uploaded_template.pdf");
-        try (OutputStream outputStream = new FileOutputStream(uploadedFile)) {
-            FileCopyUtils.copy(templateFile.getInputStream(), outputStream);
-        }
+    @PostMapping(value = "/fillPdfTemplateAndCompress", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> fillPdfTemplateAndCompress(@RequestPart("templateZip") MultipartFile templateZip) throws IOException {
+        // Create a temporary output stream for the filled ZIP file
+        try(ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
 
-        String templatePath = uploadedFile.getAbsolutePath();
-        String outputFileName = "output_filled.zip";
+            try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {
 
-        List<PdfInfo> pdfInfos = pdfInfoRepository.findAllByFilledIsFalse();
-        List<byte[]> pdfBytesForMore = pdfInfos.stream().map(pdfInfo -> {
-            try {
-                return pdfGenerationService.fillAndFlattenPdfTemplate(templatePath, outputFileName, pdfInfo);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }).toList();
+                try (ZipInputStream zipInputStream = new ZipInputStream(templateZip.getInputStream())) {
+                    ZipEntry entry;
+                    while ((entry = zipInputStream.getNextEntry()) != null) {
+                        String pdfFilename = entry.getName();
 
-        byte[] zipBytes = createZipArchive(pdfBytesForMore);
+                        // Check if the entry is a PDF file
+                        if (pdfFilename.toLowerCase().endsWith(".pdf")) {
+                            // Get the corresponding PdfInfo from the database
+                            PdfInfo pdfInfo = pdfInfoRepository.findById(Long.parseLong(pdfFilename.substring(0, pdfFilename.indexOf(".")))).orElse(null);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", outputFileName);
+                            if (pdfInfo != null) {
+                                // Process the PDF
+                                ZipArchiveEntry zipEntry = new ZipArchiveEntry(pdfFilename);
+                                zipOutputStream.putArchiveEntry(zipEntry);
 
-        return ResponseEntity.ok().headers(headers).body(zipBytes);
-    }
+                                byte[] pdfBytes = IOUtils.toByteArray(zipInputStream);
+                                byte[] filledPdfBytes = pdfGenerationService.fillAndFlattenPdfTemplate(pdfBytes, pdfInfo);
 
-    private byte[] createZipArchive(List<byte[]> pdfBytesList) throws IOException {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-             ArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(outputStream)) {
+                                zipOutputStream.write(filledPdfBytes);
+                                zipOutputStream.closeArchiveEntry();
 
-            for (int i = 0; i < pdfBytesList.size(); i++) {
-                byte[] pdfBytes = pdfBytesList.get(i);
-                ByteArrayInputStream pdfInputStream = new ByteArrayInputStream(pdfBytes);
-
-                ZipArchiveEntry entry = new ZipArchiveEntry("pdf" + i + ".pdf");
-                zipOutputStream.putArchiveEntry(entry);
-                IOUtils.copy(pdfInputStream, zipOutputStream);
-                zipOutputStream.closeArchiveEntry();
+                                // Delete the processed PdfInfo from the database
+                                pdfInfoRepository.delete(pdfInfo);
+                            }
+                        }
+                    }
+                }
             }
 
-            zipOutputStream.finish();
-
-            return outputStream.toByteArray();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "output_filled.zip");
+            byte[] zipFilled = filledZipOutputStream.toByteArray();
+            filledZipOutputStream.close();
+            return ResponseEntity.ok().headers(headers).body(zipFilled);
         }
     }
+
+
+
 }

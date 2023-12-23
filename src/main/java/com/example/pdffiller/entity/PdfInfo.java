@@ -35,10 +35,14 @@ public class PdfInfo {
     private String ammountBlocked;
     @Column(name = "ammount_in_words")
     private String ammountInWords;
-    @Column(name = "upi_id")
-    private String upiId;
+//    @Column(name = "upi_id")
+//    private String upiId;
     @Column(name = "nsdl")
     private Boolean nsdl;
+    @Column(name = "bid_price")
+    private String bidPrice;
+    @Column(name = "number_of_equity_share")
+    private String numberOfEquityShare;
     @Column(name = "filled")
     private Boolean filled;
 
