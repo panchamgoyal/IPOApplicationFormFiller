@@ -3,33 +3,19 @@ package com.example.pdffiller.controller;
 import com.example.pdffiller.entity.PdfInfo;
 import com.example.pdffiller.repository.PdfInfoRepository;
 import com.example.pdffiller.service.PdfGenerationService;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("/pdf")
@@ -49,13 +35,13 @@ public class PdfController {
 
                 try (ZipInputStream zipInputStream = new ZipInputStream(templateZip.getInputStream())) {
                     ZipEntry entry;
+                    int i = 1;
                     while ((entry = zipInputStream.getNextEntry()) != null) {
                         String pdfFilename = entry.getName();
-
                         // Check if the entry is a PDF file
                         if (pdfFilename.toLowerCase().endsWith(".pdf")) {
                             // Get the corresponding PdfInfo from the database
-                            PdfInfo pdfInfo = pdfInfoRepository.findById(Long.parseLong(pdfFilename.substring(0, pdfFilename.indexOf(".")))).orElse(null);
+                            PdfInfo pdfInfo = pdfInfoRepository.findById((long) i).orElse(null);
 
                             if (pdfInfo != null) {
                                 // Process the PDF
@@ -68,8 +54,10 @@ public class PdfController {
                                 zipOutputStream.write(filledPdfBytes);
                                 zipOutputStream.closeArchiveEntry();
 
-                                // Delete the processed PdfInfo from the database
-                                pdfInfoRepository.delete(pdfInfo);
+                                i++;
+                            }
+                            else{
+                                return ResponseEntity.badRequest().build();
                             }
                         }
                     }

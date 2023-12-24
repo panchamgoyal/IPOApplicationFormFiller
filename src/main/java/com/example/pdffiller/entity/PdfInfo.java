@@ -43,7 +43,5 @@ public class PdfInfo {
     private String bidPrice;
     @Column(name = "number_of_equity_share")
     private String numberOfEquityShare;
-    @Column(name = "filled")
-    private Boolean filled;
 
 }

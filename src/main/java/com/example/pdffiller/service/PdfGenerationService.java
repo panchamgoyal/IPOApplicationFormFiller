@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 
 
@@ -158,7 +157,8 @@ public class PdfGenerationService {
 
             // Close the documents
             pdf.close();
-
+            reader.close();
+            writer.close();
             return outputStream.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
