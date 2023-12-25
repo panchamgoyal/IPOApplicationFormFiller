@@ -1,6 +1,7 @@
 package com.example.pdffiller.service;
 
 import com.example.pdffiller.entity.PdfInfo;
+import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.DeviceRgb;
@@ -31,6 +32,7 @@ public class PdfGenerationService {
             PdfCanvas canvas = new PdfCanvas(page);
 
             // Set font properties
+            PdfFont fontTicks = PdfFontFactory.createFont("DejaVuSans.ttf", PdfEncodings.IDENTITY_H);
             PdfFont font = PdfFontFactory.createFont(StandardFonts.COURIER);
             float fontSize = 7;
             Color textColor = new DeviceRgb(0, 0, 0);
@@ -78,22 +80,22 @@ public class PdfGenerationService {
                     .moveText(20, 610).showText(pdfInfo.getBidderDepositoryAccountDetails())
                     .endText();
             if(pdfInfo.getNsdl()){
-            canvas.beginText().setFontAndSize(font, 12).setColor(textColor, true)
+            canvas.beginText().setFontAndSize(fontTicks, 12).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(215.5, 629.1).showText("X")
+                    .moveText(215.5, 629.1).showText("\u2714")
                     .endText();
             }
             else{
-                canvas.beginText().setFontAndSize(font, 12).setColor(textColor, true)
+                canvas.beginText().setFontAndSize(fontTicks, 12).setColor(textColor, true)
                         .setCharacterSpacing(0)
-                        .moveText(258, 629.1).showText("X")
+                        .moveText(258, 629.1).showText("\u2714")
                         .endText();
             }
 
             addPaymentDetails(canvas, font, textColor, pdfInfo);
 
 
-            canvas.beginText().setFontAndSize(font, 10).setColor(textColor, true)
+            canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
                     .moveText(130, 88).showText(pdfInfo.getAmmountBlocked())
                     .endText();
@@ -105,7 +107,7 @@ public class PdfGenerationService {
                     .setCharacterSpacing(0)
                     .moveText(121, 73).showText(pdfInfo.getBankAccountNumber())
                     .endText();
-            canvas.beginText().setFontAndSize(font, 7).setColor(textColor, true)
+            canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
                     .moveText(106, 60).showText(pdfInfo.getBankNameAndBranch())
                     .endText();
@@ -117,7 +119,7 @@ public class PdfGenerationService {
                     .setCharacterSpacing(0)
                     .moveText(244, 159).showText(pdfInfo.getEmail())
                     .endText();
-            canvas.beginText().setFontAndSize(font, 7).setColor(textColor, true)
+            canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
                     .moveText(85, 175).showText(pdfInfo.getName())
                     .endText();
@@ -125,7 +127,7 @@ public class PdfGenerationService {
                     .setCharacterSpacing(0)
                     .moveText(84, 189).showText(pdfInfo.getBankNameAndBranch())
                     .endText();
-            canvas.beginText().setFontAndSize(font, 10).setColor(textColor, true)
+            canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
                     .moveText(102, 203).showText(pdfInfo.getAmmountBlocked())
                     .endText();
@@ -133,7 +135,7 @@ public class PdfGenerationService {
 //                    .setCharacterSpacing(0)
 //                    .moveText(249, 204).showText(pdfInfo.getUpiId())
 //                    .endText();
-            canvas.beginText().setFontAndSize(font, 7).setColor(textColor, true)
+            canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
                     .moveText(249, 204).showText(pdfInfo.getBankAccountNumber())
                     .endText();
@@ -146,7 +148,7 @@ public class PdfGenerationService {
                     .moveText(392, 229).showText(pdfInfo.getPanOfSole())
                     .endText();
 
-            addCheckBoxes(canvas, font, textColor, pdfInfo);
+            addCheckBoxes(canvas, fontTicks, textColor, pdfInfo);
             addBidOption(canvas, font, textColor, pdfInfo);
             addBidOptionFooter(canvas, font, textColor, pdfInfo);
 
@@ -186,7 +188,7 @@ public class PdfGenerationService {
                 .setCharacterSpacing(0)
                 .moveText(208, 524).showText(pdfInfo.getBidPrice())
                 .endText();
-        canvas.beginText().setFontAndSize(font, 10).setColor(textColor, true)
+        canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                 .setCharacterSpacing(13)
                 .moveText(56, 524).showText(pdfInfo.getNumberOfEquityShare())
                 .endText();
@@ -195,17 +197,17 @@ public class PdfGenerationService {
         if(Long.parseLong(pdfInfo.getAmmountBlocked()) < 200000) {
             canvas.beginText().setFontAndSize(font, 12).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(390, 525).showText("X")
+                    .moveText(390, 525).showText("\u2714")
                     .endText();
             canvas.beginText().setFontAndSize(font, 12).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(412.8, 560).showText("X")
+                    .moveText(412.8, 560).showText("\u2714")
                     .endText();
         }
         else {
             canvas.beginText().setFontAndSize(font, 12).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(412.8, 528).showText("X")
+                    .moveText(412.8, 528).showText("\u2714")
                     .endText();
         }
     }
@@ -214,7 +216,7 @@ public class PdfGenerationService {
                 .setCharacterSpacing(6)
                 .moveText(117, 468).showText(pdfInfo.getAmmountBlocked())
                 .endText();
-        canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
+        canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                 .setCharacterSpacing(0)
                 .moveText(295, 469).showText(pdfInfo.getAmmountInWords())
                 .endText();
@@ -251,7 +253,8 @@ public class PdfGenerationService {
             }
         }
 
-        canvas.beginText().setFontAndSize(font, 10).setColor(textColor, true)
+        canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
+                .setCharacterSpacing(0)
                 .moveText(81, 434).showText(pdfInfo.getBankNameAndBranch())
                 .endText();
 //        if(pdfInfo.getUpiId() != null && !pdfInfo.getUpiId().equals("")) {
