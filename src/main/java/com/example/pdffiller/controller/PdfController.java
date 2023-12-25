@@ -39,7 +39,7 @@ public class PdfController {
                     while ((entry = zipInputStream.getNextEntry()) != null) {
                         String pdfFilename = entry.getName();
                         // Check if the entry is a PDF file
-                        if (pdfFilename.toLowerCase().endsWith(".pdf")) {
+                        if (!entry.isDirectory() && !pdfFilename.startsWith("__MACOSX/") && pdfFilename.toLowerCase().endsWith(".pdf")) {
                             // Get the corresponding PdfInfo from the database
                             PdfInfo pdfInfo = pdfInfoRepository.findById((long) i).orElse(null);
 
