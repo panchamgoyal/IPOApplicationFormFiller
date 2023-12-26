@@ -3,7 +3,6 @@ package com.example.pdffiller.controller;
 import com.example.pdffiller.PdfInfoJsonParser;
 import com.example.pdffiller.entity.PdfInfo;
 import com.example.pdffiller.service.PdfGenerationService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
