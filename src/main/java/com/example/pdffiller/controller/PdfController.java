@@ -1,8 +1,10 @@
 package com.example.pdffiller.controller;
 
+import com.example.pdffiller.PdfInfoJsonParser;
 import com.example.pdffiller.entity.PdfInfo;
-import com.example.pdffiller.repository.PdfInfoRepository;
 import com.example.pdffiller.service.PdfGenerationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -23,42 +26,81 @@ public class PdfController {
 
     @Autowired
     private PdfGenerationService pdfGenerationService;
-    @Autowired
-    private PdfInfoRepository pdfInfoRepository;
+    @PostMapping(value = "/fillPdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> fillPdfTemplateAndCompress(
+            @Parameter(description = "List of PDF files", required = true, allowEmptyValue = false)
+            @RequestPart("pdfFiles") List<MultipartFile> pdfFiles,
 
-    @PostMapping(value = "/fillPdfTemplateAndCompress", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<byte[]> fillPdfTemplateAndCompress(@RequestPart("templateZip") MultipartFile templateZip) throws IOException {
-        // Create a temporary output stream for the filled ZIP file
-        try(ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
+            @Parameter(description = "JSON file", required = true, allowEmptyValue = false)
+            @RequestPart("jsonFile") MultipartFile jsonFile) throws IOException {
 
+        // Parse JSON file to get PdfInfo objects
+        List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonFile(jsonFile);
+        try (ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
             try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {
+                int i = 0;
 
+                for (MultipartFile pdfFile : pdfFiles) {
+                    String pdfFilename = pdfFile.getOriginalFilename();
+
+                    if (pdfFilename != null && pdfFilename.toLowerCase().endsWith(".pdf")) {
+                        // Get PdfInfo for the current PDF
+                        PdfInfo pdfInfo = pdfInfoList.get(i);
+
+                        // Process the PDF
+                        byte[] pdfBytes = pdfFile.getBytes();
+                        byte[] filledPdfBytes = pdfGenerationService.fillAndFlattenPdfTemplate(pdfBytes, pdfInfo);
+
+                        ZipArchiveEntry zipEntry = new ZipArchiveEntry(pdfFilename);
+                        zipOutputStream.putArchiveEntry(zipEntry);
+                        zipOutputStream.write(filledPdfBytes);
+                        zipOutputStream.closeArchiveEntry();
+
+                        i++;
+                    }
+                }
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "output_filled.zip");
+            byte[] zipFilled = filledZipOutputStream.toByteArray();
+            return ResponseEntity.ok().headers(headers).body(zipFilled);
+        }
+    }
+
+    @PostMapping(value = "/fillPdfZip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> fillPdfTemplateAndCompress(
+            @RequestPart("templateZip") MultipartFile templateZip,
+            @RequestPart("jsonFile") MultipartFile jsonFile) throws IOException {
+
+        // Parse the JSON file content to get PdfInfo objects
+        List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonFile(jsonFile);
+
+        // Create a temporary output stream for the filled ZIP file
+        try (ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
+            try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {
                 try (ZipInputStream zipInputStream = new ZipInputStream(templateZip.getInputStream())) {
                     ZipEntry entry;
-                    int i = 1;
+                    int i = 0;
                     while ((entry = zipInputStream.getNextEntry()) != null) {
                         String pdfFilename = entry.getName();
                         // Check if the entry is a PDF file
                         if (!entry.isDirectory() && !pdfFilename.startsWith("__MACOSX/") && pdfFilename.toLowerCase().endsWith(".pdf")) {
-                            // Get the corresponding PdfInfo from the database
-                            PdfInfo pdfInfo = pdfInfoRepository.findById((long) i).orElse(null);
+                            // Get the corresponding PdfInfo from the JSON data
+                            PdfInfo pdfInfo = pdfInfoList.get(i);
 
-                            if (pdfInfo != null) {
-                                // Process the PDF
-                                ZipArchiveEntry zipEntry = new ZipArchiveEntry(pdfFilename);
-                                zipOutputStream.putArchiveEntry(zipEntry);
+                            // Process the PDF
+                            ZipArchiveEntry zipEntry = new ZipArchiveEntry(pdfFilename);
+                            zipOutputStream.putArchiveEntry(zipEntry);
 
-                                byte[] pdfBytes = IOUtils.toByteArray(zipInputStream);
-                                byte[] filledPdfBytes = pdfGenerationService.fillAndFlattenPdfTemplate(pdfBytes, pdfInfo);
+                            byte[] pdfBytes = IOUtils.toByteArray(zipInputStream);
+                            byte[] filledPdfBytes = pdfGenerationService.fillAndFlattenPdfTemplate(pdfBytes, pdfInfo);
 
-                                zipOutputStream.write(filledPdfBytes);
-                                zipOutputStream.closeArchiveEntry();
+                            zipOutputStream.write(filledPdfBytes);
+                            zipOutputStream.closeArchiveEntry();
 
-                                i++;
-                            }
-                            else{
-                                return ResponseEntity.badRequest().build();
-                            }
+                            i++;
                         }
                     }
                 }
@@ -68,7 +110,6 @@ public class PdfController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDispositionFormData("attachment", "output_filled.zip");
             byte[] zipFilled = filledZipOutputStream.toByteArray();
-            filledZipOutputStream.close();
             return ResponseEntity.ok().headers(headers).body(zipFilled);
         }
     }
@@ -76,3 +117,5 @@ public class PdfController {
 
 
 }
+
+

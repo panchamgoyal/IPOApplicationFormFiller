@@ -182,15 +182,21 @@ public class PdfGenerationService {
     private void addBidOption(PdfCanvas canvas, PdfFont font, Color textColor, PdfInfo pdfInfo){
         canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                 .setCharacterSpacing(0)
-                .moveText(323, 524).showText(pdfInfo.getAmmountBlocked())
+                .moveText(323, 524).showText(pdfInfo.getNetPrice())
                 .endText();
         canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                 .setCharacterSpacing(0)
                 .moveText(208, 524).showText(pdfInfo.getBidPrice())
                 .endText();
+        if(Long.parseLong(pdfInfo.getDiscount()) != 0) {
+            canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
+                    .setCharacterSpacing(0)
+                    .moveText(265, 524).showText(pdfInfo.getDiscount())
+                    .endText();
+        }
         canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                 .setCharacterSpacing(13)
-                .moveText(56, 524).showText(pdfInfo.getNumberOfEquityShare())
+                .moveText(59, 524).showText(pdfInfo.getNumberOfEquityShare())
                 .endText();
     }
     private void addCheckBoxes(PdfCanvas canvas, PdfFont font, Color textColor, PdfInfo pdfInfo){
@@ -210,6 +216,10 @@ public class PdfGenerationService {
                     .moveText(412.8, 528).showText("\u2714")
                     .endText();
         }
+        canvas.beginText().setFontAndSize(font, 12).setColor(textColor, true)
+                .setCharacterSpacing(0)
+                .moveText(472, 480).showText("\u2714")
+                .endText();
     }
     private void addPaymentDetails(PdfCanvas canvas, PdfFont font, Color textColor, PdfInfo pdfInfo){
         canvas.beginText().setFontAndSize(font, 11).setColor(textColor, true)
