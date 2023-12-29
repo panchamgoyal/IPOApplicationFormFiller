@@ -31,8 +31,9 @@ public class PdfController {
             @RequestPart("pdfFiles") List<MultipartFile> pdfFiles,
 
             @Parameter(description = "List of pdfInfo", required = true, allowEmptyValue = false)
-            @RequestPart("pdfInfos") List<PdfInfo> pdfInfoList) throws IOException {
+            @RequestPart("pdfInfos") String pdfInfoDtoList) throws IOException {
 
+        List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonString(pdfInfoDtoList);
         try (ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
             try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {
                 int i = 0;
@@ -68,9 +69,12 @@ public class PdfController {
 
     @PostMapping(value = "/fillPdfZip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<byte[]> fillPdfTemplateAndCompress(
+            @Parameter(description = "List of PDF files", required = true, allowEmptyValue = false)
             @RequestPart("templateZip") MultipartFile templateZip,
-            @RequestPart("pdfInfos") List<PdfInfo> pdfInfoList) throws IOException {
+            @Parameter(description = "List of pdfInfo", required = true, allowEmptyValue = false)
+            @RequestPart("pdfInfos") String pdfInfoDtoList) throws IOException {
 
+        List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonString(pdfInfoDtoList);
         // Create a temporary output stream for the filled ZIP file
         try (ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
             try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {

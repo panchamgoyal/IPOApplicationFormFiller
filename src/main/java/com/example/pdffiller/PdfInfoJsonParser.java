@@ -11,10 +11,10 @@ import java.util.List;
 
 public class PdfInfoJsonParser {
 
-    public static List<PdfInfo> parseJsonFile(MultipartFile jsonFile) throws IOException {
+    public static List<PdfInfo> parseJsonString(String jsonString) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         TypeReference<List<PdfInfo>> typeReference = new TypeReference<List<PdfInfo>>() {};
 
-        return objectMapper.readValue(jsonFile.getInputStream(), typeReference);
+        return objectMapper.readValue(jsonString, typeReference);
     }
 }
