@@ -31,9 +31,9 @@ public class PdfController {
             @RequestPart("pdfFiles") List<MultipartFile> pdfFiles,
 
             @Parameter(description = "List of pdfInfo", required = true, allowEmptyValue = false)
-            @RequestPart("pdfInfos") String pdfInfoDtoList) throws IOException {
+                    List<PdfInfo> pdfInfoList) throws IOException {
 
-        List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonString(pdfInfoDtoList);
+        //List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonString(pdfInfoDtoList);
         try (ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
             try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {
                 int i = 0;
@@ -72,9 +72,9 @@ public class PdfController {
             @Parameter(description = "List of PDF files", required = true, allowEmptyValue = false)
             @RequestPart("templateZip") MultipartFile templateZip,
             @Parameter(description = "List of pdfInfo", required = true, allowEmptyValue = false)
-            @RequestPart("pdfInfos") String pdfInfoDtoList) throws IOException {
+                    List<PdfInfo> pdfInfoList) throws IOException {
 
-        List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonString(pdfInfoDtoList);
+        //List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonString(pdfInfoDtoList);
         // Create a temporary output stream for the filled ZIP file
         try (ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
             try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {
