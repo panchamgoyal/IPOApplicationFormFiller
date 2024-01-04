@@ -10,9 +10,9 @@
     "bankNameAndBranch": "Bank Name 1, Branch 1",
     "ammountInWords": "One Hundred Thousand",
     "nsdl": true,
-    "bidPrice": "50",
+    "bidPrice": "250",
     "discount": "5",
-    "numberOfEquityShare": "25"
+    "numberOfEquityShare": "2500000"
   },
   {
     "address": "456 Oak Avenue",
@@ -27,7 +27,7 @@
     "nsdl": false,
     "bidPrice": "75",
     "discount": "0",
-    "numberOfEquityShare": "40"
+    "numberOfEquityShare": "4000000"
   },
   {
     "address": "789 Pine Street",

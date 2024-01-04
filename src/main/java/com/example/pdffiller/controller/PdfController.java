@@ -8,9 +8,13 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,37 +29,33 @@ public class PdfController {
 
     @Autowired
     private PdfGenerationService pdfGenerationService;
-    @PostMapping(value = "/fillPdf", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/fillPdf", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<byte[]> fillPdfTemplateAndCompress(
-            @Parameter(description = "List of PDF files", required = true, allowEmptyValue = false)
-            @RequestPart("pdfFiles") List<MultipartFile> pdfFiles,
-
             @Parameter(description = "List of pdfInfo", required = true, allowEmptyValue = false)
-            @RequestPart("pdfInfos") List<PdfInfo> pdfInfoList) throws IOException {
+            @RequestBody List<PdfInfo> pdfInfoList) throws IOException {
 
-        //List<PdfInfo> pdfInfoList = PdfInfoJsonParser.parseJsonString(pdfInfoDtoList);
         try (ByteArrayOutputStream filledZipOutputStream = new ByteArrayOutputStream()) {
             try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(filledZipOutputStream)) {
+
+                // Get a list of PDF files from the input folder
+                Resource[] pdfResources = getPdfResources("input");
+
                 int i = 0;
 
-                for (MultipartFile pdfFile : pdfFiles) {
-                    String pdfFilename = pdfFile.getOriginalFilename();
+                for (Resource pdfResource : pdfResources) {
+                    // Process the PDF
+                    byte[] pdfBytes = StreamUtils.copyToByteArray(pdfResource.getInputStream());
+                    PdfInfo pdfInfo = pdfInfoList.get(i);
+                    byte[] filledPdfBytes = pdfGenerationService.fillAndFlattenPdfTemplate(pdfBytes, pdfInfo);
 
-                    if (pdfFilename != null && pdfFilename.toLowerCase().endsWith(".pdf")) {
-                        // Get PdfInfo for the current PDF
-                        PdfInfo pdfInfo = pdfInfoList.get(i);
+                    String pdfFilename = pdfResource.getFilename();
 
-                        // Process the PDF
-                        byte[] pdfBytes = pdfFile.getBytes();
-                        byte[] filledPdfBytes = pdfGenerationService.fillAndFlattenPdfTemplate(pdfBytes, pdfInfo);
+                    ZipArchiveEntry zipEntry = new ZipArchiveEntry(pdfFilename);
+                    zipOutputStream.putArchiveEntry(zipEntry);
+                    zipOutputStream.write(filledPdfBytes);
+                    zipOutputStream.closeArchiveEntry();
 
-                        ZipArchiveEntry zipEntry = new ZipArchiveEntry(pdfFilename);
-                        zipOutputStream.putArchiveEntry(zipEntry);
-                        zipOutputStream.write(filledPdfBytes);
-                        zipOutputStream.closeArchiveEntry();
-
-                        i++;
-                    }
+                    i++;
                 }
             }
 
@@ -65,6 +65,10 @@ public class PdfController {
             byte[] zipFilled = filledZipOutputStream.toByteArray();
             return ResponseEntity.ok().headers(headers).body(zipFilled);
         }
+    }
+
+    private Resource[] getPdfResources(String folder) throws IOException {
+        return new PathMatchingResourcePatternResolver().getResources("classpath:" + folder + "/*.pdf");
     }
 
     @PostMapping(value = "/fillPdfZip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
