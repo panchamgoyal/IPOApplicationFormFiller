@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
+import java.math.BigDecimal;
 
 
 @Service
@@ -69,17 +69,17 @@ public class PdfGenerationService {
             }
             canvas.beginText().setFontAndSize(font, 14).setColor(textColor, true)
                     .setCharacterSpacing(20)
-                    .moveText(310, 648).showText(pdfInfo.getPanOfSole().toUpperCase())
+                    .moveText(310, 648).showText(pdfInfo.getPan().toUpperCase())
                     .endText();
             canvas.beginText().setFontAndSize(font, 11).setColor(textColor, true)
                     .setCharacterSpacing(10)
-                    .moveText(423, 683).showText(pdfInfo.getTelNumber())
+                    .moveText(423, 683).showText(pdfInfo.getMobile())
                     .endText();
             canvas.beginText().setFontAndSize(font, 14).setColor(textColor, true)
                     .setCharacterSpacing(20)
-                    .moveText(20, 610).showText(pdfInfo.getBidderDepositoryAccountDetails())
+                    .moveText(20, 610).showText(pdfInfo.getDpAccountDetails())
                     .endText();
-            if(pdfInfo.getNsdl()){
+            if(pdfInfo.getDpAccountDetails().startsWith("IN")){
             canvas.beginText().setFontAndSize(fontTicks, 12).setColor(textColor, true)
                     .setCharacterSpacing(0)
                     .moveText(215.5, 629.1).showText("\u2714")
@@ -94,10 +94,10 @@ public class PdfGenerationService {
 
             addPaymentDetails(canvas, font, textColor, pdfInfo);
 
-
+            BigDecimal totalAmount = pdfInfo.getBidPrice().subtract(pdfInfo.getDiscount()).multiply(pdfInfo.getNumberOfEquityShare());
             canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(130, 88).showText(pdfInfo.getAmmountBlocked())
+                    .moveText(130, 88).showText(totalAmount.toPlainString())
                     .endText();
 //            canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
 //                    .setCharacterSpacing(0)
@@ -113,7 +113,7 @@ public class PdfGenerationService {
                     .endText();
             canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(86, 158).showText(pdfInfo.getTelNumber())
+                    .moveText(86, 158).showText(pdfInfo.getMobile())
                     .endText();
             canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
@@ -127,9 +127,10 @@ public class PdfGenerationService {
                     .setCharacterSpacing(0)
                     .moveText(84, 189).showText(pdfInfo.getBankNameAndBranch())
                     .endText();
+
             canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(102, 203).showText(pdfInfo.getAmmountBlocked())
+                    .moveText(102, 203).showText(totalAmount.toPlainString())
                     .endText();
 //            canvas.beginText().setFontAndSize(font, 7).setColor(textColor, true)
 //                    .setCharacterSpacing(0)
@@ -141,11 +142,11 @@ public class PdfGenerationService {
                     .endText();
             canvas.beginText().setFontAndSize(font, 14).setColor(textColor, true)
                     .setCharacterSpacing(13)
-                    .moveText(37, 229).showText(pdfInfo.getBidderDepositoryAccountDetails())
+                    .moveText(37, 229).showText(pdfInfo.getDpAccountDetails())
                     .endText();
             canvas.beginText().setFontAndSize(font, 14).setColor(textColor, true)
                     .setCharacterSpacing(12)
-                    .moveText(392, 229).showText(pdfInfo.getPanOfSole())
+                    .moveText(392, 229).showText(pdfInfo.getPan())
                     .endText();
 
             addCheckBoxes(canvas, fontTicks, textColor, pdfInfo);
@@ -171,36 +172,37 @@ public class PdfGenerationService {
     private void addBidOptionFooter(PdfCanvas canvas, PdfFont font, Color textColor, PdfInfo pdfInfo) {
         canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                 .setCharacterSpacing(0)
-                .moveText(102, 115).showText(pdfInfo.getNumberOfEquityShare())
+                .moveText(102, 115).showText(pdfInfo.getNumberOfEquityShare().toPlainString())
                 .endText();
         canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                 .setCharacterSpacing(0)
-                .moveText(102, 102).showText(pdfInfo.getBidPrice())
+                .moveText(102, 102).showText(pdfInfo.getBidPrice().toPlainString())
                 .endText();
     }
 
     private void addBidOption(PdfCanvas canvas, PdfFont font, Color textColor, PdfInfo pdfInfo){
         canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                 .setCharacterSpacing(0)
-                .moveText(323, 524).showText(pdfInfo.getNetPrice())
+                .moveText(323, 524).showText(pdfInfo.getBidPrice().subtract(pdfInfo.getDiscount()).toPlainString())
                 .endText();
         canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                 .setCharacterSpacing(0)
-                .moveText(208, 524).showText(pdfInfo.getBidPrice())
+                .moveText(208, 524).showText(pdfInfo.getBidPrice().toPlainString())
                 .endText();
-        if(Long.parseLong(pdfInfo.getDiscount()) != 0) {
+        if(BigDecimal.ZERO.compareTo(pdfInfo.getDiscount()) == 0) {
             canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                     .setCharacterSpacing(0)
-                    .moveText(265, 524).showText(pdfInfo.getDiscount())
+                    .moveText(265, 524).showText(pdfInfo.getDiscount().toPlainString())
                     .endText();
         }
         canvas.beginText().setFontAndSize(font, 9).setColor(textColor, true)
                 .setCharacterSpacing(13)
-                .moveText(59, 524).showText(pdfInfo.getNumberOfEquityShare())
+                .moveText(59, 524).showText(pdfInfo.getNumberOfEquityShare().toPlainString())
                 .endText();
     }
     private void addCheckBoxes(PdfCanvas canvas, PdfFont font, Color textColor, PdfInfo pdfInfo){
-        if(Long.parseLong(pdfInfo.getAmmountBlocked()) < 200000) {
+        BigDecimal totalAmount = pdfInfo.getBidPrice().subtract(pdfInfo.getDiscount()).multiply(pdfInfo.getNumberOfEquityShare());
+        if(totalAmount.compareTo(BigDecimal.valueOf(200000)) < 0) {
             canvas.beginText().setFontAndSize(font, 12).setColor(textColor, true)
                     .setCharacterSpacing(0)
                     .moveText(390, 525).showText("\u2714")
@@ -222,9 +224,10 @@ public class PdfGenerationService {
                 .endText();
     }
     private void addPaymentDetails(PdfCanvas canvas, PdfFont font, Color textColor, PdfInfo pdfInfo){
+        BigDecimal totalAmount = pdfInfo.getBidPrice().subtract(pdfInfo.getDiscount()).multiply(pdfInfo.getNumberOfEquityShare());
         canvas.beginText().setFontAndSize(font, 11).setColor(textColor, true)
                 .setCharacterSpacing(6)
-                .moveText(117, 468).showText(pdfInfo.getAmmountBlocked())
+                .moveText(117, 468).showText(totalAmount.toPlainString())
                 .endText();
         canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                 .setCharacterSpacing(0)
