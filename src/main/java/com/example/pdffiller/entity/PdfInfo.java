@@ -20,5 +20,4 @@ public class PdfInfo {
     private BigDecimal bidPrice;
     private BigDecimal discount;
     private BigDecimal numberOfEquityShare;
-    private String ammountInWords;
 }

@@ -1,6 +1,7 @@
 package com.example.pdffiller.service;
 
 import com.example.pdffiller.entity.PdfInfo;
+import com.ibm.icu.text.RuleBasedNumberFormat;
 import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.colors.Color;
@@ -19,6 +20,8 @@ import java.math.BigDecimal;
 
 @Service
 public class PdfGenerationService {
+
+    private final RuleBasedNumberFormat ruleBasedNumberFormat = new RuleBasedNumberFormat(RuleBasedNumberFormat.SPELLOUT);
 
     public byte[] fillAndFlattenPdfTemplate(byte[] pdfBytes, PdfInfo pdfInfo) throws IOException {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -229,9 +232,10 @@ public class PdfGenerationService {
                 .setCharacterSpacing(6)
                 .moveText(117, 468).showText(totalAmount.toPlainString())
                 .endText();
+
         canvas.beginText().setFontAndSize(font, 8).setColor(textColor, true)
                 .setCharacterSpacing(0)
-                .moveText(295, 469).showText(pdfInfo.getAmmountInWords())
+                .moveText(295, 469).showText(ruleBasedNumberFormat.format(totalAmount).replaceAll("-", " ").toUpperCase() + " ONLY/-")
                 .endText();
         if(pdfInfo.getBankAccountNumber() != null && !pdfInfo.getBankAccountNumber().equals("")) {
             if (pdfInfo.getBankAccountNumber().length() <= 10 && pdfInfo.getBankAccountNumber().length() != 0) {
