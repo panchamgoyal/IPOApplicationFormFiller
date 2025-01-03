@@ -3,8 +3,9 @@ This application is used to fill PDF forms programatically for the purpose of ap
 This application is useful for people who wish to apply for IPO on behalf of Minor, or any other entity for which they have to fill and sumbmit the IPO application form manually.
 
 Steps to generate the filled application form.
-1. Go to https://ipoforms.nseindia.com/issueforms and download blank application form for the company they wish to apply an IPO for.
-2. Clone the repo and run it locally
+1. Go to https://ipoforms.nseindia.com/issueforms and download blank application form for the company you wish to apply an IPO for. 
+2. Unzip the downloaded file, and place it in `resources/input` folder
+2. Start and run the application locally
 3. Once the application is started, make a `POST` request to the endpoint `localhost:8081/pdf/fillPdf` with below data
 
 ```
